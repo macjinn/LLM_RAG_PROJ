@@ -1,0 +1,22 @@
+project_name/
+├── data/
+│   ├── raw/                # 원본 데이터 저장
+│   ├── processed/          # 전처리된 데이터 저장
+│   └── embeddings/         # 임베딩된 데이터 저장
+├── docs/                   # 프로젝트 관련 문서
+├── models/
+│   ├── checkpoints/        # 모델 체크포인트 저장
+│   └── quantized/          # 양자화된 모델 저장
+├── notebooks/              # Jupyter 노트북 파일
+├── scripts/                # 데이터 처리 및 학습 스크립트
+├── src/
+│   ├── __init__.py         # 패키지 초기화 파일
+│   ├── data_processing.py  # 데이터 전처리 모듈
+│   ├── embedding.py        # 임베딩 생성 모듈
+│   ├── model_training.py   # 모델 학습 모듈
+│   ├── rag_pipeline.py     # RAG 파이프라인 모듈
+│   └── app.py              # Gradio 인터페이스 모듈
+├── tests/                  # 테스트 코드
+├── .gitignore              # Git 무시 파일 목록
+├── requirements.txt        # 프로젝트 의존성 목록
+└── README.md               # 프로젝트 개요 및 설명
