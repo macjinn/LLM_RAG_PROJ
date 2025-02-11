@@ -14,7 +14,7 @@ def preprocess_data(df):
 def save_processed_data(df, output_path):
     """ 전처리된 데이터를 저장합니다. """
     df.to_csv(output_path, index=False)
-
+###
 if __name__ == "__main__":
     raw_data_path = "data/raw/financial_data.csv"
     processed_data_path = "data/processed/financial_data_cleaned.csv"
@@ -22,3 +22,4 @@ if __name__ == "__main__":
     df = load_raw_data(raw_data_path)
     df = preprocess_data(df)
     save_processed_data(df, processed_data_path)
+

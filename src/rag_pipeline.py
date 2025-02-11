@@ -13,7 +13,7 @@ def build_rag_pipeline():
         chain_type="stuff",
         retriever=retriever
     )
-
+###
 if __name__ == "__main__":
     rag_pipeline = build_rag_pipeline()
     print("RAG 파이프라인이 성공적으로 구축되었습니다.")

@@ -12,7 +12,7 @@ def generate_response(user_input):
     outputs = model.generate(**inputs)
     response = tokenizer.decode(outputs[0], skip_special_tokens=True)
     return response
-
+##
 iface = gr.Interface(fn=generate_response, inputs="text", outputs="text", title="금융 추천 시스템")
 iface.launch()
 
