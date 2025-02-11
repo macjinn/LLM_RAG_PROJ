@@ -11,7 +11,7 @@
 ### **FinShibainu 모델**
 이 시스템은 **Hugging Face에서 제공하는 "FinShibainu" 모델**을 사용합니다.
 
-**🔗 출처:** [Hugging Face - FinShibainu](https://huggingface.co/FinShibainu)
+**출처:** [Hugging Face - FinShibainu](https://huggingface.co/FinShibainu)
 
 ### **사용 이유**
 - **금융 특화 모델**: 금융 및 회계 관련 데이터를 학습하여 금융 도메인에 최적화됨
@@ -73,7 +73,7 @@
 - **이유**: 대량의 금융 상품 데이터를 빠르게 검색하고 유사도를 비교하기 위해 사용됨
 - **구현**: `sentence-transformers`를 활용하여 금융 상품 설명을 벡터로 변환 후 저장
 
-### 🔹 (4) **LLM (FinShibainu) 기반 자연어 처리**
+### (4) **LLM (FinShibainu) 기반 자연어 처리**
 - **이유**: 사용자의 투자 목적, 가입 조건, 자금 규모 등 다양한 요소를 고려하여 적절한 상품을 추천하기 위함
 - **활용 기술**: `transformers` 라이브러리 기반의 FinShibainu 모델
 
@@ -144,5 +144,5 @@ python src/app.py
 
 ---
 
-✏**문의 및 기여**
+**문의 및 기여**
 - 본 프로젝트에 대한 기여를 환영합니다. Pull Request 또는 Issue를 통해 의견을 공유해주세요!
