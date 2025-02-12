@@ -9,6 +9,9 @@ project_name/
 │   └── quantized/          # 양자화된 모델 저장
 ├── notebooks/              # Jupyter 노트북 파일
 ├── scripts/                # 데이터 처리 및 학습 스크립트
+├── index/                   # FAISS 인덱스 및 메타데이터 저장
+│   ├── faiss_index.index
+│   └── metadata.json
 ├── src/
 │   ├── __init__.py         # 패키지 초기화 파일
 │   ├── data_processing.py  # 데이터 전처리 모듈
