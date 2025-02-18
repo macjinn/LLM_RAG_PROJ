@@ -20,6 +20,7 @@ project_name/
 │   ├── rag_pipeline.py     # RAG 파이프라인 모듈
 │   └── app.py              # Gradio 인터페이스 모듈
 ├── tests/                  # 테스트 코드
+├── config.yaml             # 환경 설정 및 파라미터 (수정예정)
 ├── .gitignore              # Git 무시 파일 목록
 ├── requirements.txt        # 프로젝트 의존성 목록
 └── README.md               # 프로젝트 개요 및 설명
