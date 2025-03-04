@@ -3,7 +3,7 @@ import torch
 import os, time
 
 # 모델 저장 디렉토리 설정
-MODEL_DIR = "/home/inseong/LLM_RAG_PROJ/models/FinShibainu_4bit" 
+MODEL_DIR = "F" 
 
 # 모델 및 토크나이저 로드 (저장된 모델이 있으면 다운로드 생략)
 model_name = "aiqwe/FinShibainu"
