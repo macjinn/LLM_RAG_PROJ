@@ -53,4 +53,5 @@ with gr.Blocks() as demo:
 
 # 실행
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(share=True)
+
