@@ -2,7 +2,7 @@ project_name/
 ├── data/
 │   ├── raw/                # 원본 데이터 저장
 │   ├── processed/          # 전처리된 데이터 저장
-│   └── embeddings/         # 임베딩된 데이터 저장
+│   └── chroma_db/          # 임베딩 후 백터데이터베이스화화
 ├── docs/                   # 프로젝트 관련 문서
 ├── models/
 │   ├── checkpoints/        # 모델 체크포인트 저장

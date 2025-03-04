@@ -5,7 +5,7 @@ import numpy as np
 
 def process_data(raw_csv_path: str, processed_json_dir: str) -> None:
     """
-    CSV 파일을 읽어 각 행을 내러티브 형식의 텍스트 문서로 변환한 후,
+    입출금자유예금 파일을 읽어 각 행을 내러티브 형식의 텍스트 문서로 변환한 후,
     JSON 파일에 저장하는 함수입니다.
     
     Args:

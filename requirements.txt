@@ -1,6 +1,7 @@
 torch
 transformers
 langchain
+langchain-chroma
+chromadb
 gradio
-faiss-cpu
 sentence-transformers
