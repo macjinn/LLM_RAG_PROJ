@@ -3,7 +3,7 @@ import torch
 import os, time
 
 # 모델 저장 디렉토리 설정
-MODEL_DIR = "F" 
+MODEL_DIR = "/home/inseong/LLM_RAG_PROJ/models/FinShibainu_4bit" 
 
 # 모델 및 토크나이저 로드 (저장된 모델이 있으면 다운로드 생략)
 model_name = "aiqwe/FinShibainu"
@@ -57,24 +57,55 @@ information = """
 상품명: 신한 주거래 미래설계통장
 기본금리: 0.1
 최고금리(우대금리포함): 0.75
+
+은행: SC제일은행
+상품명: 내월급통장
+기본금리: 0.6
+최고금리(우대금리포함): 3.1
+이자지급방식: 월지급
 """
 
 # 프롬프트
+# input_text = f"""
+# 당신은 금융상품 전문가이며 금융상품을 추천하는 상담원 역할입니다.
+# 다음 금융 상품 데이터에서 '최고금리(우대금리포함)' 값이 가장 높은 **단 하나의** 상품을 찾아 출력 형식 예시를 참고하여 출력하세요.
+# 특히 답변에서 상품추천의 이유를 상세하게 설명해야 합니다. 이때 데이터 정보에서 근거를 들어 논리적이고 상세하게 설명하세요.
+
+# 금융 상품 데이터:
+# {information}
+
+# 출력 형식 예시:
+# [은행명]: [상품명]
+# 상품설명: 
+# 상품추천 이유: 
+
+# """
+# print(f"입력:\n{input_text}\n")
+
+
+
 input_text = f"""
-당신은 금융상품 전문가이며 금융상품을 추천하는 상담원 역할입니다.
-다음 금융 상품 데이터에서 '최고금리(우대금리포함)' 값이 가장 높은 **단 하나의** 상품을 찾아 출력 형식 예시를 참고하여 출력하세요.
-특히 답변에서 상품추천의 이유를 상세하게 설명해야 합니다. 이때 데이터 정보에서 근거를 들어 논리적이고 상세하게 설명하세요.
+    You are a financial product expert and consultant who always responds in Korean. Your task is to analyze the given financial product data and recommend exactly one product that has the highest "최고금리(우대금리포함)" (highest interest rate including preferential rates).
 
-금융 상품 데이터:
-{information}
+    Please follow these instructions carefully:
+    1. Use the provided data only. Do not add any information that is not present in the data.
+    2. If you do not know the answer or if the data does not contain sufficient information, simply respond with "모르겠습니다" (I don't know). Do not fabricate an answer.
+    3. Clearly extract and present the key details: Bank Name, Product Name, Basic Interest Rate, Highest Interest Rate (including preferential rate), and any relevant conditions or restrictions.
+    4. Provide a detailed recommendation reason based solely on the data, explaining why this product is the best choice.
+    5. Format your answer exactly as shown in the output format below.
 
-출력 형식 예시:
-[은행명]: [상품명]
-상품설명: 
-상품추천 이유: 
+    Financial Product Data:
+    {information}
 
-"""
-print(f"입력:\n{input_text}\n")
+    Output Format Example:
+    [은행명]: [상품명]
+    기본금리: 
+    최고금리(우대금리포함): 
+    가입조건/제한: 
+    추천 사유: 
+
+    Answer in Korean.
+    """
 
 
 # 입력을 토큰화
@@ -85,7 +116,7 @@ start_time = time.time()
 
 # 답변 생성
 print("모델이 답변을 생성하는 중...\n")
-max_length = 800 # 생성 토큰 수
+max_length = 1000 # 생성 토큰 수
 with torch.no_grad():
     output = model.generate(**inputs, max_length=max_length)
 
@@ -93,8 +124,8 @@ with torch.no_grad():
 # 결과 디코딩
 response_text = tokenizer.decode(output[0], skip_special_tokens=True)
 
-if "출력 형식 예시:" in response_text:
-    response_text = response_text.split("출력 형식 예시:")[-1].strip()
+if "Answer in Korean." in response_text:
+    response_text = response_text.split("Answer in Korean.")[-1].strip()
 print(f"💬 모델 응답: {response_text}\n")
 
 end_time = time.time()
