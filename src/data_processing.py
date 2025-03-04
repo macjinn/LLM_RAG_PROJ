@@ -13,7 +13,6 @@ def process_data(raw_csv_path: str, processed_json_dir: str) -> None:
         processed_json_dir (str): 전처리된 결과를 저장할 폴더 경로.
     """
     try:
-        # CSV 파일을 읽고, 모든 NaN 값을 None으로 변환하여 JSON에서 null로 저장하도록 함
         df = pd.read_csv(raw_csv_path, encoding="utf-8")
     except Exception as e:
         print(f"CSV 파일 읽기 오류: {e}")
@@ -22,8 +21,8 @@ def process_data(raw_csv_path: str, processed_json_dir: str) -> None:
     # 불필요한 "Unnamed:"로 시작하는 컬럼 제거
     df = df.loc[:, ~df.columns.str.startswith("Unnamed")]
 
-    # 모든 NaN 값을 명시적으로 None으로 변환 (숫자형 컬럼의 경우에도 적용)
-    df.replace({np.nan: None}, inplace=True)
+    # 모든 NaN 값을 "정보 없음"으로 변환
+    df.replace({np.nan: "정보 없음"}, inplace=True)
 
     documents = []
     
@@ -55,11 +54,8 @@ def process_data(raw_csv_path: str, processed_json_dir: str) -> None:
         }
         documents.append(document)
 
-    # 저장할 JSON 파일 이름 생성
     json_filename = os.path.splitext(os.path.basename(raw_csv_path))[0] + ".json"
     processed_json_path = os.path.join(processed_json_dir, json_filename)
-
-    # 저장 경로의 디렉토리가 없으면 생성
     os.makedirs(processed_json_dir, exist_ok=True)
 
     # JSON 파일로 저장 (ensure_ascii=False를 사용해 한글이 깨지지 않도록 함)

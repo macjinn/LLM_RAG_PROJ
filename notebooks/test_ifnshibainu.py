@@ -85,7 +85,7 @@ start_time = time.time()
 
 # 답변 생성
 print("모델이 답변을 생성하는 중...\n")
-max_length = 1000 # 생성 토큰 수
+max_length = 800 # 생성 토큰 수
 with torch.no_grad():
     output = model.generate(**inputs, max_length=max_length)
 
