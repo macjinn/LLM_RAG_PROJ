@@ -1,6 +1,8 @@
 torch
 transformers
 langchain
+langchain_community
+langchain-huggingface
 langchain-chroma
 chromadb
 gradio
