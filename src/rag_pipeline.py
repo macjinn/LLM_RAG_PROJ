@@ -9,19 +9,23 @@ from langchain_core.prompts import PromptTemplate
 class FinShibainuLLM:
     """LangChain과 호환 가능한 LLM 래퍼 클래스"""
     def __init__(self, model_path):
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.model_path = model_path
 
-        # 4-bit 양자화된 모델 로드
-        self.tokenizer = AutoTokenizer.from_pretrained(model_path)
-        quantization_config = BitsAndBytesConfig(
+        # quantization_config 정의
+        self.quantization_config = BitsAndBytesConfig(
             load_in_4bit=True,
             bnb_4bit_compute_dtype=torch.float16,
             bnb_4bit_use_double_quant=True,
+            llm_int8_enable_fp32_cpu_offload=True  # CPU 오프로드 활성화
         )
+
+        # 4-bit 양자화된 모델 로드
+        self.tokenizer = AutoTokenizer.from_pretrained(model_path)
         self.model = AutoModelForCausalLM.from_pretrained(
-            model_path,
-            quantization_config=quantization_config,
-            device_map="auto"
+            self.model_path,
+            quantization_config=self.quantization_config,
+            device_map="auto",
+            torch_dtype=torch.float16  # 메모리 절약
         )
 
         # HuggingFace Pipeline 생성 (LangChain과 호환)
@@ -34,6 +38,7 @@ class FinShibainuLLM:
         self.llm = HuggingFacePipeline(pipeline=self.pipe)
 
     def get_llm(self):
+        """LangChain과 호환 가능한 LLM 반환"""
         return self.llm
 
 def build_rag_pipeline():
@@ -49,7 +54,7 @@ def build_rag_pipeline():
     chroma_db_path = "/home/inseong/LLM_RAG_PROJ/data/chroma_db"
     embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
     vectorstore = Chroma(persist_directory=chroma_db_path, embedding_function=embeddings)
-    retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
+    retriever = vectorstore.as_retriever(search_kwargs={"k": 3, "include_score": True})
 
     # 프롬프트 템플릿 정의
     custom_template = """
@@ -90,8 +95,7 @@ def build_rag_pipeline():
         }
     )
 
-
-    return rag_chain
+    return rag_chain, vectorstore
 
 if __name__ == "__main__":
     rag_pipeline = build_rag_pipeline()

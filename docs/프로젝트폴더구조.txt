@@ -1,4 +1,8 @@
 project_name/
+├── api/
+│   └── server.py        # FastAPI 백엔드 API 서버 (검색, 추가, 삭제 등)
+├── dashboard/
+│   └── dashboard.py     # Streamlit 대시보드 (UI 제공)
 ├── data/
 │   ├── raw/                # 원본 데이터 저장
 │   ├── processed/          # 전처리된 데이터 저장
