@@ -12,6 +12,14 @@ def clean_text(text: str) -> str:
     text = re.sub(r'\s+', ' ', text).strip()
     return text
 
+def stringify_metadata(metadata):
+    """
+    메타데이터 값을 모두 문자열로 변환.
+    딕셔너리 또는 리스트 타입을 JSON 문자열로 변환하여 ChromaDB의 metadata 필드에 적합하게 저장.
+    """
+    return {key: json.dumps(value, ensure_ascii=False) if isinstance(value, (dict, list)) else str(value) for key, value in metadata.items()}
+
+
 def process_data(raw_csv_path: str, processed_json_dir: str) -> None:
     """
     장병내일준비적금_상품설명 CSV 파일을 읽어, 각 카테고리별로 그룹화한 후 내러티브와 메타데이터를 JSON 파일로 저장합니다.
@@ -62,13 +70,13 @@ def process_data(raw_csv_path: str, processed_json_dir: str) -> None:
         
         narrative = "\n".join(narrative_lines)
         
+        # 메타데이터를 문자열로 변환 (딕셔너리 또는 리스트 -> JSON 형식의 문자열)
+        metadata_str = stringify_metadata(metadata_details)
+
         document = {
             "id": idx,
             "narrative": narrative,
-            "metadata": {
-                "카테고리": category,
-                "세부 항목": metadata_details
-            }
+            "metadata": metadata_str # chroma_db는 딕셔너리를 지원하지 않아 이렇게 수정 0305
         }
         documents.append(document)
     
