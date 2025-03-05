@@ -6,16 +6,26 @@ import numpy as np
 
 def clean_text(text: str) -> str:
     """
-    텍스트에서 불필요한 이모지, HTML 태그, 여분의 공백을 제거합니다.
+    텍스트에서 불필요한 특수문자, HTML 태그, 개행문자를 제거합니다.
     """
     text = str(text)
     text = text.replace("▷", "").replace("<br />", " ")
     text = re.sub(r'\s+', ' ', text).strip()
     return text
 
+def clean_column_names(columns):
+    """
+    불필요한 'Unnamed' 라벨을 제거하고, 올바른 컬럼명을 생성합니다.
+    """
+    cleaned_columns = []
+    for col in columns:
+        col = re.sub(r"Unnamed: \d+_level_\d+", "", col).strip()
+        cleaned_columns.append(col)
+    return cleaned_columns
+
 def process_data(raw_csv_path: str, processed_json_dir: str) -> None:
     """
-    장병내일준비적금금리_금리비교 (멀티 헤더 구조)을 읽어 각 행을 내러티브 형식의 텍스트 문서로 변환하고 JSON 파일로 저장합니다.
+    새 CSV 파일(멀티 헤더 구조)을 읽어 각 행을 내러티브 형식의 텍스트 문서로 변환하고 JSON 파일로 저장합니다.
     
     Args:
         raw_csv_path (str): 원본 CSV 파일 경로.
@@ -29,8 +39,8 @@ def process_data(raw_csv_path: str, processed_json_dir: str) -> None:
         return
 
     # 멀티 인덱스 컬럼을 하나의 문자열로 결합 (상단 헤더가 비어있는 경우 전행 값을 채움)
-    new_columns = []
     last_top = ""
+    new_columns = []
     for top, sub in df.columns:
         if pd.isna(top) or top.strip() == "":
             top = last_top
@@ -42,8 +52,12 @@ def process_data(raw_csv_path: str, processed_json_dir: str) -> None:
         else:
             combined = top.strip()
         new_columns.append(combined)
+
+    # 불필요한 'Unnamed' 라벨 제거
+    new_columns = clean_column_names(new_columns)
     df.columns = new_columns
 
+    # 불필요한 컬럼 제거 및 결측치 처리
     df = df.loc[:, ~df.columns.str.startswith("Unnamed")]
     df.replace({np.nan: "정보 없음"}, inplace=True)
 
