@@ -76,8 +76,7 @@ def create_vectorstore_from_all_json(processed_dir: str = "/home/inseong/LLM_RAG
         total_new_texts += len(texts)
         print(f"완료: {file_name} ({len(texts)}개의 문서)")
     
-    # 백터스토어 저장 (디스크에 persist)
-    vectorstore.persist()
+    # 백터스토어 저장
     print(f"ChromaDB에 총 {total_new_texts}개의 신규 문서를 추가했습니다. (경로: {persist_dir})")
     
     # 처리된 파일 기록 업데이트
@@ -107,7 +106,8 @@ def search_vectorstore(query: str,
     embeddings = HuggingFaceEmbeddings(model_name=model_name)
     vectorstore = Chroma(persist_directory=persist_dir, embedding_function=embeddings)
     results = vectorstore.similarity_search(query, k=k)
-    
+
+
     print("검색 결과:")
     for i, result in enumerate(results):
         print(f"Rank {i+1}: {result.page_content}")
