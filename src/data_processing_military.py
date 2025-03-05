@@ -1,3 +1,5 @@
+# 장병내일준비적금금리_금리비교 전처리 코드
+
 import os
 import json
 import re
@@ -25,8 +27,8 @@ def clean_column_names(columns):
 
 def process_data(raw_csv_path: str, processed_json_dir: str) -> None:
     """
-    새 CSV 파일(멀티 헤더 구조)을 읽어 각 행을 내러티브 형식의 텍스트 문서로 변환하고 JSON 파일로 저장합니다.
-    
+    장병내일준비적금금리_금리비교.csv (멀티 헤더 구조)를 읽어 각 행을 내러티브 형식의 텍스트 문서로 변환하고 JSON 파일로 저장합니다.
+
     Args:
         raw_csv_path (str): 원본 CSV 파일 경로.
         processed_json_dir (str): 전처리된 결과 JSON 파일을 저장할 디렉토리.
@@ -91,6 +93,6 @@ def process_data(raw_csv_path: str, processed_json_dir: str) -> None:
     print(f"{len(documents)}개의 문서를 {processed_json_path}에 저장했습니다.")
 
 if __name__ == "__main__":
-    raw_csv = "C:\\Users\\insung\\LLM_RAG_PROJ\\data\\raw\\장병내일준비적금금리_금리비교_20250213.csv"
-    processed_json_dir = "C:\\Users\\insung\\LLM_RAG_PROJ\\data\\processed"
+    raw_csv = "/home/inseong/LLM_RAG_PROJ/data/raw/장병내일준비적금금리_금리비교_20250213.csv"
+    processed_json_dir = "/home/inseong/LLM_RAG_PROJ/data/processed"
     process_data(raw_csv, processed_json_dir)

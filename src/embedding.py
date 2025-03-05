@@ -3,6 +3,14 @@ import json
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
 
+
+'''
+수정 및 업데이트 예정 사항
+현재 processed_json_path의 특정 json파일에 대해서만 임베딩을 수행하고 있음
+이를 해당 폴더의 전체 json파일을 임베딩 하는 것으로 수정해야 함
+'''
+
+
 def create_vectorstore_from_json(processed_json_path: str,
                                  model_name: str = "sentence-transformers/all-MiniLM-L6-v2",
                                  persist_dir: str = "data/chroma_db"):

@@ -29,7 +29,7 @@ class FinShibainuLLM:
             "text-generation",
             model=self.model,
             tokenizer=self.tokenizer,
-            max_new_tokens=200
+            max_new_tokens=800
         )
         self.llm = HuggingFacePipeline(pipeline=self.pipe)
 
