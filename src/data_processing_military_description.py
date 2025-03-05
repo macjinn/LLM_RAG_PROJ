@@ -83,6 +83,6 @@ def process_data(raw_csv_path: str, processed_json_dir: str) -> None:
 
 
 if __name__ == "__main__":
-    raw_csv = "C:\\Users\\insung\\LLM_RAG_PROJ\\data\\raw\\장병내일준비적금_상품설명.csv"
-    processed_json_dir = "C:\\Users\\insung\\LLM_RAG_PROJ\\data\\processed"
+    raw_csv = "/home/inseong/LLM_RAG_PROJ/data/raw/장병내일준비적금_상품설명.csv"
+    processed_json_dir = "/home/inseong/LLM_RAG_PROJ/data/processed"
     process_data(raw_csv, processed_json_dir)
