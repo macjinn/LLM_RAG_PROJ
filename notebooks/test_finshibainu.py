@@ -84,29 +84,34 @@ information = """
 
 
 
+# input_text = f"""
+#     You are a financial product expert and consultant who always responds in Korean. Your task is to analyze the given financial product data and recommend exactly one product that has the highest "최고금리(우대금리포함)" (highest interest rate including preferential rates).
+
+#     Please follow these instructions carefully:
+#     1. Use the provided data only. Do not add any information that is not present in the data.
+#     2. If you do not know the answer or if the data does not contain sufficient information, simply respond with "모르겠습니다" (I don't know). Do not fabricate an answer.
+#     3. Clearly extract and present the key details: Bank Name, Product Name, Basic Interest Rate, Highest Interest Rate (including preferential rate), and any relevant conditions or restrictions.
+#     4. Provide a detailed recommendation reason based solely on the data, explaining why this product is the best choice.
+#     5. Format your answer exactly as shown in the output format below.
+
+#     Financial Product Data:
+#     {information}
+
+#     Output Format Example:
+#     [은행명]: [상품명]
+#     기본금리: 
+#     최고금리(우대금리포함): 
+#     가입조건/제한: 
+#     추천 사유: 
+
+#     Answer in Korean.
+#     """
+
 input_text = f"""
-    You are a financial product expert and consultant who always responds in Korean. Your task is to analyze the given financial product data and recommend exactly one product that has the highest "최고금리(우대금리포함)" (highest interest rate including preferential rates).
-
-    Please follow these instructions carefully:
-    1. Use the provided data only. Do not add any information that is not present in the data.
-    2. If you do not know the answer or if the data does not contain sufficient information, simply respond with "모르겠습니다" (I don't know). Do not fabricate an answer.
-    3. Clearly extract and present the key details: Bank Name, Product Name, Basic Interest Rate, Highest Interest Rate (including preferential rate), and any relevant conditions or restrictions.
-    4. Provide a detailed recommendation reason based solely on the data, explaining why this product is the best choice.
-    5. Format your answer exactly as shown in the output format below.
-
-    Financial Product Data:
-    {information}
-
-    Output Format Example:
-    [은행명]: [상품명]
-    기본금리: 
-    최고금리(우대금리포함): 
-    가입조건/제한: 
-    추천 사유: 
+    대한민국 경제상황을 종합적으로 정리하고 앞으로의 경제 동향을 보고서의 형태로 작성해줘.
 
     Answer in Korean.
     """
-
 
 # 입력을 토큰화
 device = "cuda" if torch.cuda.is_available() else "cpu"

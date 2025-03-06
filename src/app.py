@@ -17,7 +17,7 @@ def run_fastapi():
 fastapi_process = run_fastapi()
 
 # FastAPI 주소 설정
-API_URL = "http://127.0.0.1:8000"
+API_URL = "http://127.0.0.1:9000"
 
 def chat_interface(user_input):
     """FastAPI의 /chat 엔드포인트를 호출하여 RAG 응답을 반환"""
