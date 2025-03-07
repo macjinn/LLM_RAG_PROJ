@@ -30,7 +30,7 @@ if st.button("검색 실행"):
                     score = res.get("score", 0.0)  # score 키가 없을 경우 대비
                     metadata = res.get("metadata", {})  # metadata가 없을 경우 대비
 
-                    st.markdown(f"**Rank {idx+1}:** {text} (유사도(단순 가까운거리): {score:.2f})")
+                    st.markdown(f"**Rank {idx+1}:** {text} (유사도 (단순 가까운거리) : {score:.2f})")
                     st.json(metadata)
         except Exception as e:
             st.error(f"응답 처리 중 오류 발생: {e}")
