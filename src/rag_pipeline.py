@@ -54,7 +54,7 @@ def build_rag_pipeline():
     chroma_db_path = "/home/inseong/LLM_RAG_PROJ/data/chroma_db"
     embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
     vectorstore = Chroma(persist_directory=chroma_db_path, embedding_function=embeddings)
-    retriever = vectorstore.as_retriever(search_kwargs={"k": 3, "include_score": True})
+    retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
 
     # 프롬프트 템플릿 정의
     custom_template = """

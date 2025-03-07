@@ -63,7 +63,7 @@ def search_vectorstore(request: QueryRequest):
 def chat_endpoint(request: ChatRequest):
     """RAG 파이프라인을 통해 질문에 대한 답변을 생성합니다."""
     try:
-        answer = rag_pipeline.run(request.query)
+        answer = rag_pipeline.invoke(request.query) ## 응답형식을 ivoke로 변경해서 해당 호출함수 수정 0307
         return {"answer": answer}
     except Exception as e:
         logger.error("Error during chat generation: %s", e, exc_info=True)
