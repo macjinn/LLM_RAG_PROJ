@@ -8,7 +8,7 @@ import requests
 def run_fastapi():
     """FastAPI 서버를 별도의 프로세스로 실행"""
     return subprocess.Popen(
-        ["uvicorn", "api.server:app", "--host", "0.0.0.0", "--port", "8000"],
+        ["uvicorn", "api.server:app", "--host", "0.0.0.0", "--port", "9000"],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE
     )
@@ -25,9 +25,10 @@ def chat_interface(user_input):
     try:
         response = requests.post(f"{API_URL}/chat", json=payload)
         response.raise_for_status()
-        return response.json().get("answer", "응답을 생성할 수 없습니다.")
+        data = response.json()
+        return data.get("user_answer", "응답을 생성할 수 없습니다."), data.get("admin_answer", "관리자 응답 없음")
     except Exception as e:
-        return f"오류 발생: {e}"
+        return f"오류 발생: {e}", "관리자 응답 없음"
 
 def stop_instance():
     """Gradio 종료 시 FastAPI 프로세스도 종료"""
@@ -60,16 +61,24 @@ with gr.Blocks() as demo:
 
         with gr.Column(scale=5):
             gr.Markdown("### AI 응답")
-            output_box = gr.Textbox(
-                label="AI의 답변",
-                lines=8,
-                interactive=False
-            )
+            with gr.Tabs():
+                with gr.TabItem("사용자 답변"):
+                    user_output = gr.Textbox(
+                        label="유저용 응답",
+                        lines=8,
+                        interactive=False
+                    )
+                with gr.TabItem("관리자용 전체 응답"):
+                    admin_output = gr.Textbox(
+                        label="관리자 응답",
+                        lines=12,
+                        interactive=False
+                    )
 
     example_buttons.change(fn=lambda x: x, inputs=[example_buttons], outputs=[user_input])
-    
+
     submit_button = gr.Button("질문하기")
-    submit_button.click(fn=chat_interface, inputs=[user_input], outputs=[output_box])
+    submit_button.click(fn=chat_interface, inputs=[user_input], outputs=[user_output, admin_output])
 
     stop_button = gr.Button("인스턴스 종료")
     stop_button.click(fn=stop_instance)
