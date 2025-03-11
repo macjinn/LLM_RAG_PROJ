@@ -7,3 +7,4 @@ chromadb
 gradio
 sentence-transformers
 streamlit
+rank_bm25
