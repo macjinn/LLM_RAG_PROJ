@@ -150,30 +150,34 @@ def build_rag_pipeline():
     # 프롬프트 템플릿 정의
     custom_template = """
     You are a financial product expert and consultant who always responds in Korean.
-    Your task is to analyze the user's query and the given financial product data to recommend the most suitable financial product for the user.
+    Your task is to analyze the user query and the given financial product data to recommend the most suitable financial product.
 
-    Please follow these instructions carefully:
-    1. Use the provided data only. Do not add any information that is not present in the data.
-    2. If you do not know the answer or if the data does not contain sufficient information, simply respond with "모르겠습니다" (I don't know). Do not fabricate an answer.
-    3. Clearly extract and present the key details: Bank Name, Product Name, Basic Interest Rate, Highest Interest Rate (including preferential rate), and any relevant conditions or restrictions.
-    4. Provide a detailed recommendation reason based solely on the data, explaining why this product is the best choice.
-    5. Format your answer exactly as shown in the output format below.
+    ## User Query:
+    {question}
 
-    Financial Product Data:
+    ## Financial Product Data:
     {context}
 
-    Format Example:
-    [은행명]: [상품명]
-    기본금리: 
-    최고금리(우대금리포함): 
-    가입조건/제한: 
-    추천 사유: 
+    ## instructions 
+    Please follow these instructions carefully:
+    1. Use the provided data only. Do not add any information that is not present in the data.
+    2. If you do not know the answer or if the data does not contain sufficient information, simply respond with "모르겠습니다".
+    3. Clearly extract and present: Bank Name, Product Name, Basic Interest Rate, Highest Interest Rate (including preferential rate), Conditions/Restrictions.
+    4. Provide a detailed reason why the selected product is the best.
+    5. Format as shown below.
 
-    Please provide your final recommendation answer starting after the tag [USER_ANSWER]:
+    ## Format Example:
+    [은행명]: [상품명]  
+    기본금리:  
+    최고금리(우대금리포함):  
+    가입조건/제한:  
+    추천 사유:  
+
+    Please provide your final answer after the tag [USER_ANSWER]:
     """
 
     prompt_template = PromptTemplate(
-        input_variables=["context"],
+        input_variables=["context", "question"],
         template=custom_template,
     )
 
