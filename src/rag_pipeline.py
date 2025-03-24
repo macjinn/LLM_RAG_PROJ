@@ -5,6 +5,7 @@ from langchain_chroma import Chroma
 from langchain.chains import RetrievalQA
 from langchain_huggingface import HuggingFacePipeline
 from langchain_core.prompts import PromptTemplate
+from langchain.schema import Document
 
 from rank_bm25 import BM25Okapi
 import numpy as np
@@ -119,12 +120,12 @@ class HybridRetriever:
             arr = np.array(scores)
             return (arr - arr.min()) / (arr.max() - arr.min() + 1e-6)
 
-        # 벡터 서치 결과 정규화
+
         vector_docs = [doc for doc, score in vector_results]
-        vector_scores = normalize([score for doc, score in vector_results]) if vector_results else []
+        # 코사인 유사도 (값이 클수록 유사한 것으로) 변환 후 정규화
+        vector_scores = normalize([1 - (score / 2) for doc, score in vector_results]) if vector_results else [] 
         print("DEBUG: vector_scores =", vector_scores)
 
-        
         # BM25 서치 결과 정규화
         bm25_docs = [doc for doc, score in bm25_results]
         bm25_scores_norm = normalize([score for doc, score in bm25_results]) if bm25_results else []
@@ -187,20 +188,28 @@ def build_rag_pipeline():
     # 벡터 데이터베이스 로드 (Chroma 사용)
     chroma_db_path = "/home/inseong/LLM_RAG_PROJ/data/chroma_db"
     embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-    vectorstore = Chroma(persist_directory=chroma_db_path, embedding_function=embeddings)
+    vectorstore = Chroma(persist_directory=chroma_db_path, embedding_function=embeddings) 
 
     # 기존에 사용하던 단일 HNSW 대신 모든 문서를 로딩 (BM25용)
     raw_docs = vectorstore.get()
     docs_texts = raw_docs.get("documents", [])  # str 리스트
     metadatas = raw_docs.get("metadatas", [])
 
-    from langchain.schema import Document
     all_docs = [
         Document(page_content=text, metadata=metadata or {})
         for text, metadata in zip(docs_texts, metadatas)
     ]
     print(f"총 문서 수: {len(docs_texts)}")
     print(f"None metadata 개수: {sum(1 for m in metadatas if m is None)}")
+
+    if all_docs:
+        vectorstore = Chroma.from_documents(
+            documents=all_docs,
+            embedding=embeddings,
+            collection_name="fin_product_docs",
+            persist_directory=chroma_db_path,
+            collection_metadata={"hnsw:space": "cosine"}
+        )
 
     # HybridRetriever 호출 (alpha, top_k 등 파라미터 조정 가능)
     hybrid_retriever = HybridRetriever(vectorstore=vectorstore, bm25_docs=all_docs, alpha=0.5, top_k=3)
