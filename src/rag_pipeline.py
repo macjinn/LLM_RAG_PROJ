@@ -8,16 +8,11 @@ from langchain_core.prompts import PromptTemplate
 
 from rank_bm25 import BM25Okapi
 import numpy as np
-import logging
 import hashlib
 
 from langchain_core.retrievers import BaseRetriever
 from typing import Callable, List
 from langchain_core.documents import Document
-
-# 로깅 설정
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 # class FinShibainuLLM:
 #     """LangChain과 호환 가능한 LLM 래퍼 클래스 (RTX 3080용)"""
@@ -73,7 +68,7 @@ class FinShibainuLLM:
             "text-generation",
             model=self.model,
             tokenizer=self.tokenizer,
-            max_new_tokens=800
+            max_new_tokens=4000
         )
 
         # LangChain 통합용 LLM 객체
@@ -109,53 +104,75 @@ class HybridRetriever:
         else:
             return hashlib.sha1(doc.page_content.encode("utf-8")).hexdigest()[:20]
 
-    def retrieve(self, query):
+    def retrieve_with_scores(self, query):
         try:
-            # 벡터 유사도를 통한 검색
             vector_results = self.vectorstore.similarity_search_with_score(query, k=self.top_k * 2)
         except Exception as e:
-            logger.error(f"Vector search error: {e}")
+            print(f"Vector search error: {e}")
             vector_results = []
 
-        # BM25 기반 키워드 검색
         bm25_scores = self.bm25.get_scores(query.split(" "))
         bm25_top_n_idx = np.argsort(bm25_scores)[::-1][:self.top_k * 2]
         bm25_results = [(self.bm25_docs[idx], bm25_scores[idx]) for idx in bm25_top_n_idx]
 
-        # 정규화 함수: 기본 min-max 정규화 (추후 다른 기법 시도 가능)
         def normalize(scores):
             arr = np.array(scores)
             return (arr - arr.min()) / (arr.max() - arr.min() + 1e-6)
 
+        # 벡터 서치 결과 정규화
         vector_docs = [doc for doc, score in vector_results]
         vector_scores = normalize([score for doc, score in vector_results]) if vector_results else []
+        print("DEBUG: vector_scores =", vector_scores)
 
+        
+        # BM25 서치 결과 정규화
         bm25_docs = [doc for doc, score in bm25_results]
         bm25_scores_norm = normalize([score for doc, score in bm25_results]) if bm25_results else []
+        print("DEBUG: bm25_scores_norm =", bm25_scores)
 
-        # 하이브리드 점수 계산: doc_id를 기준으로 병합
+
         all_docs = {}
+        # 벡터 서치 결과 반영 (가중치: (1 - alpha))
         for doc, score in zip(vector_docs, vector_scores):
             doc_id = self._get_doc_id(doc)
-            all_docs[doc_id] = {"doc": doc, "score": (1 - self.alpha) * score}
+            all_docs[doc_id] = {
+                "doc": doc,
+                "vector_score": (1 - self.alpha) * score,
+                "bm25_score": 0  # 아직 BM25 점수 없음
+            }
 
+        # BM25 서치 결과 반영 (가중치: alpha)
         for doc, score in zip(bm25_docs, bm25_scores_norm):
             doc_id = self._get_doc_id(doc)
             if doc_id in all_docs:
-                all_docs[doc_id]["score"] += self.alpha * score
+                all_docs[doc_id]["bm25_score"] = self.alpha * score
             else:
-                all_docs[doc_id] = {"doc": doc, "score": self.alpha * score}
+                all_docs[doc_id] = {
+                    "doc": doc,
+                    "vector_score": 0,
+                    "bm25_score": self.alpha * score
+                }
+        
+        # 최종 결합 점수 계산
+        for doc_id, item in all_docs.items():
+            item["score"] = item["vector_score"] + item["bm25_score"]
 
         sorted_docs = sorted(all_docs.values(), key=lambda x: x["score"], reverse=True)
-        return [item["doc"] for item in sorted_docs[:self.top_k]]
+        return [(item["doc"], item["score"], item["vector_score"], item["bm25_score"]) for item in sorted_docs[:self.top_k]]
 
 
-# LangChain 호환을 위해 lambda 함수로 래핑
+
 class CustomRetriever(BaseRetriever):
-    retriever_func: Callable[[str], List[Document]]
+    retriever_func: Callable[[str], List]
     
     def get_relevant_documents(self, query: str) -> List[Document]:
-        return self.retriever_func(query)
+        results = self.retriever_func(query)
+        # RetrievalQA은 튜플을 받지 못 해서 따로 후처리
+        # retrieve_with_scores 함수는 백터 스토어 점수 보고자 할 때 그대로 사용 가능
+        if results and isinstance(results[0], tuple):
+            return [doc for doc, score, vector_score, bm25_score in results]
+        return results
+
 
 
 def build_rag_pipeline():
@@ -182,14 +199,14 @@ def build_rag_pipeline():
         Document(page_content=text, metadata=metadata or {})
         for text, metadata in zip(docs_texts, metadatas)
     ]
-    logger.info(f"총 문서 수: {len(docs_texts)}")
-    logger.info(f"None metadata 개수: {sum(1 for m in metadatas if m is None)}")
+    print(f"총 문서 수: {len(docs_texts)}")
+    print(f"None metadata 개수: {sum(1 for m in metadatas if m is None)}")
 
     # HybridRetriever 호출 (alpha, top_k 등 파라미터 조정 가능)
     hybrid_retriever = HybridRetriever(vectorstore=vectorstore, bm25_docs=all_docs, alpha=0.5, top_k=3)
 
     # 최종 CustomRetriever 생성
-    retriever = CustomRetriever(retriever_func=hybrid_retriever.retrieve)
+    retriever = CustomRetriever(retriever_func=hybrid_retriever.retrieve_with_scores)
 
     # 프롬프트 템플릿 정의 (JSON 형식 출력 요구 포함)
     custom_template = """
@@ -205,24 +222,16 @@ def build_rag_pipeline():
     ## Instructions:
     1. Use only the provided data. Do not add any information that is not present in the data.
     2. If you do not know the answer or the data is insufficient, respond with "모르겠습니다".
-    3. Clearly extract and present the following details:
+    3. Clearly extract and present the following format:
        - Bank Name
        - Product Name
        - Basic Interest Rate
        - Highest Interest Rate (including preferential rate)
        - Conditions/Restrictions
-       - Recommendation Reason
-    4. Please output your final answer in the following JSON format:
-    {
-      "bank_name": "",
-      "product_name": "",
-      "basic_interest_rate": "",
-      "max_interest_rate": "",
-      "conditions": "",
-      "recommendation_reason": ""
-    }
+       - Recommendation Reason  
+    4. Please provide your final answer after the tag [USER_ANSWER].
 
-    Please provide your final answer after the tag [USER_ANSWER]:
+    ##[USER_ANSWER]:
     """
 
     prompt_template = PromptTemplate(

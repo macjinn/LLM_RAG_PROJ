@@ -8,3 +8,4 @@ gradio
 sentence-transformers
 streamlit
 rank_bm25
+accelerate>=0.26.0 # device_map="auto"를 사용할 경우 필수

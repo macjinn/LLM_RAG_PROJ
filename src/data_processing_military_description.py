@@ -1,3 +1,4 @@
+# data_processing_military_description.py
 import os
 import json
 import re
@@ -5,90 +6,95 @@ import pandas as pd
 
 def clean_text(text: str) -> str:
     """
-    텍스트에서 불필요한 특수문자, HTML 태그, 개행문자 등을 제거하고 정리합니다.
+    텍스트에서 불필요한 특수문자, HTML 태그, 개행문자 등을 제거합니다.
     """
     text = str(text)
     text = text.replace("▷", "").replace("<br />", " ")
     text = re.sub(r'\s+', ' ', text).strip()
     return text
 
-def stringify_metadata(metadata):
-    """
-    메타데이터 값을 모두 문자열로 변환.
-    딕셔너리 또는 리스트 타입을 JSON 문자열로 변환하여 ChromaDB의 metadata 필드에 적합하게 저장.
-    """
-    return {key: json.dumps(value, ensure_ascii=False) if isinstance(value, (dict, list)) else str(value) for key, value in metadata.items()}
-
-
 def process_data(raw_csv_path: str, processed_json_dir: str) -> None:
     """
-    장병내일준비적금_상품설명 CSV 파일을 읽어, 각 카테고리별로 그룹화한 후 내러티브와 메타데이터를 JSON 파일로 저장합니다.
+    장병내일준비적금_상품설명 CSV 파일을 읽어, 각 카테고리별로 그룹화한 후,
+    RAG 시스템 및 하이브리드 서치 알고리즘에 최적화된 JSON 문서로 저장합니다.
     
-    CSV 파일은 아래의 컬럼을 포함합니다:
-      - 카테고리
-      - 세부 항목
-      - 내용
-
-    각 JSON 문서는 하나의 카테고리에 해당하는 모든 정보를 포함하며,
-    RAG 시스템의 검색 및 백터 서치에 최적화된 형태로 구성됩니다.
-    
-    Args:
-        raw_csv_path (str): 원본 CSV 파일 경로.
-        processed_json_dir (str): 전처리된 결과 JSON 파일을 저장할 디렉토리.
+    최종 JSON 구조 예시:
+    {
+      "documents": [
+        {
+          "id": "military_desc_000",
+          "bank": "정보 없음",
+          "product_name": "<카테고리>",
+          "type": "장병내일준비적금 상품설명",
+          "content": "카테고리: <카테고리>\n<세부 항목1>: <내용1>\n<세부 항목2>: <내용2>\n...",
+          "key_summary": "<세부 항목1>: <내용1 (최대50자)>, <세부 항목2>: <내용2 (최대50자)>",
+          "metadata": {
+            "<세부 항목1>": "<내용1>",
+            "<세부 항목2>": "<내용2>",
+            ...
+          }
+        },
+        ...
+      ]
+    }
     """
     try:
         df = pd.read_csv(raw_csv_path, encoding="utf-8")
     except Exception as e:
         print(f"CSV 파일 읽기 오류: {e}")
         return
-    
 
+    # 결측치는 "정보 없음"으로 대체 및 각 열 정제
     df.fillna("정보 없음", inplace=True)
-
-    df["카테고리"] = df["카테고리"].apply(clean_text)
-    df["세부 항목"] = df["세부 항목"].apply(clean_text)
-    df["내용"] = df["내용"].apply(clean_text)
+    df["카테고리"] = df["카테고리"].apply(lambda x: clean_text(x))
+    df["세부 항목"] = df["세부 항목"].apply(lambda x: clean_text(x))
+    df["내용"] = df["내용"].apply(lambda x: clean_text(x))
     
     documents = []
-    
-    # '카테고리'별로 그룹화
     grouped = df.groupby("카테고리")
     for idx, (category, group) in enumerate(grouped):
-        metadata_details = {}
-        narrative_lines = [f"카테고리: {category}"]
-        
-        # 그룹 내 각 행에 대해 세부 항목과 내용을 내러티브 및 메타데이터에 추가
+        # 내러티브 content 생성: 첫 줄은 카테고리, 이후 각 행의 세부 항목과 내용을 연결
+        content_lines = [f"카테고리: {category}"]
+        metadata = {}
         for _, row in group.iterrows():
-            sub = row["세부 항목"]
-            content = row["내용"]
-            # 동일 세부 항목이 여러 번 등장할 경우 연결
-            if sub in metadata_details:
-                metadata_details[sub] += f" / {content}"
+            key = row["세부 항목"]
+            value = row["내용"]
+            content_lines.append(f"{key}: {value}")
+            # 같은 세부 항목이 중복되면 연결
+            if key in metadata:
+                metadata[key] += " / " + value
             else:
-                metadata_details[sub] = content
-            narrative_lines.append(f"{sub}: {content}")
+                metadata[key] = value
+        content = "\n".join(content_lines)
         
-        narrative = "\n".join(narrative_lines)
-        
-        # 메타데이터를 문자열로 변환 (딕셔너리 또는 리스트 -> JSON 형식의 문자열)
-        metadata_str = stringify_metadata(metadata_details)
+        # key_summary: 그룹의 상위 두 행을 선택하여, 각 행의 세부 항목과 내용(최대50자)을 간결하게 연결
+        summary_items = []
+        for _, row in group.head(2).iterrows():
+            key = row["세부 항목"]
+            value = row["내용"]
+            short_value = value[:50] + ("..." if len(value) > 50 else "")
+            summary_items.append(f"{key}: {short_value}")
+        key_summary = ", ".join(summary_items) if summary_items else "정보 없음"
+        metadata["key_summary"] = key_summary  # key_summary를 추가
 
         document = {
-            "id": idx,
-            "narrative": narrative,
-            "metadata": metadata_str # chroma_db는 딕셔너리를 지원하지 않아 이렇게 수정 0305
+            "id": f"military_desc_{idx:03d}",
+            "bank": "정보 없음",
+            "product_name": category,
+            "type": "장병내일준비적금 상품설명",
+            "content": content,
+            "key_summary": key_summary,
+            "metadata": metadata
         }
         documents.append(document)
     
+    output = {"documents": documents}
     json_filename = os.path.splitext(os.path.basename(raw_csv_path))[0] + ".json"
     processed_json_path = os.path.join(processed_json_dir, json_filename)
     os.makedirs(processed_json_dir, exist_ok=True)
-    
     with open(processed_json_path, "w", encoding="utf-8") as f:
-        json.dump(documents, f, ensure_ascii=False, indent=2)
-    
+        json.dump(output, f, ensure_ascii=False, indent=2)
     print(f"{len(documents)}개의 문서를 {processed_json_path}에 저장했습니다.")
-
 
 if __name__ == "__main__":
     raw_csv = "/home/inseong/LLM_RAG_PROJ/data/raw/장병내일준비적금_상품설명.csv"

@@ -1,3 +1,4 @@
+# embedding.py
 import os
 import json
 import glob
@@ -8,9 +9,8 @@ def create_vectorstore_from_all_json(processed_dir: str = "/home/inseong/LLM_RAG
                                      model_name: str = "sentence-transformers/all-MiniLM-L6-v2",
                                      persist_dir: str = "/home/inseong/LLM_RAG_PROJ/data/chroma_db"):
     """
-    processed_dir 폴더 내의 모든 JSON 파일에 대해 내러티브 텍스트를 임베딩하여
-    Chroma DB 벡터스토어에 저장합니다.
-    이미 임베딩된 파일은 스킵합니다.
+    processed_dir 폴더 내의 모든 JSON 파일에 대해 'content' 필드의 텍스트를 임베딩하여
+    Chroma DB 벡터스토어에 저장합니다. (새 JSON 구조: 최상위에 "documents" 키)
     
     Args:
         processed_dir (str): 전처리된 JSON 파일들이 있는 디렉토리.
@@ -20,7 +20,6 @@ def create_vectorstore_from_all_json(processed_dir: str = "/home/inseong/LLM_RAG
     Returns:
         vectorstore: 업데이트된 Chroma DB 벡터스토어 객체.
     """
-    # record file: 처리 완료된 파일명을 기록 (없으면 새로 생성)
     record_file = os.path.join(persist_dir, "processed_files.txt")
     if os.path.exists(record_file):
         with open(record_file, "r", encoding="utf-8") as f:
@@ -28,7 +27,6 @@ def create_vectorstore_from_all_json(processed_dir: str = "/home/inseong/LLM_RAG
     else:
         processed_files = set()
     
-
     json_files = glob.glob(os.path.join(processed_dir, "*.json"))
     
     embeddings = HuggingFaceEmbeddings(model_name=model_name)
@@ -46,26 +44,23 @@ def create_vectorstore_from_all_json(processed_dir: str = "/home/inseong/LLM_RAG
         print(f"처리 시작: {file_name}")
         try:
             with open(file_path, "r", encoding="utf-8") as f:
-                documents = json.load(f)
+                json_data = json.load(f)
+                # 새 JSON 구조: 최상위에 "documents" 키
+                documents = json_data.get("documents", [])
         except Exception as e:
             print(f"파일 {file_name} 로드 실패: {e}")
             continue
         
-        # 내러티브 텍스트 및 메타데이터 추출
-        texts = [doc["narrative"] for doc in documents if "narrative" in doc]
-        metadatas = [doc.get("metadata", {}) for doc in documents if "narrative" in doc]
+        # 'content' 필드에서 텍스트를 추출하고, 메타데이터 및 id 사용
+        texts = [doc["content"] for doc in documents if "content" in doc]
+        metadatas = [doc.get("metadata", {}) for doc in documents if "content" in doc]
+        ids = [doc["id"] for doc in documents if "content" in doc]
         
         if not texts:
-            print(f"파일 {file_name}에 'narrative' 필드가 없거나 데이터가 없습니다. 스킵합니다.")
+            print(f"파일 {file_name}에 'content' 필드가 없거나 데이터가 없습니다. 스킵합니다.")
             continue
         
-        # 고유 ID 생성: 파일명과 인덱스를 조합
-        ids = [f"{file_name}_{idx}" for idx in range(len(texts))]
-        
-        # 임베딩 생성: 각 문서 임베딩 계산 후 리스트로 변환
-        emb_list = embeddings.embed_documents(texts)
-        
-        # 기존 벡터스토어에 추가
+        # 임베딩 추가
         vectorstore.add_texts(
             texts=texts,
             metadatas=metadatas,
@@ -76,10 +71,8 @@ def create_vectorstore_from_all_json(processed_dir: str = "/home/inseong/LLM_RAG
         total_new_texts += len(texts)
         print(f"완료: {file_name} ({len(texts)}개의 문서)")
     
-    # 백터스토어 저장
     print(f"ChromaDB에 총 {total_new_texts}개의 신규 문서를 추가했습니다. (경로: {persist_dir})")
     
-    # 처리된 파일 기록 업데이트
     if new_files:
         with open(record_file, "a", encoding="utf-8") as f:
             for file_name in new_files:
@@ -106,7 +99,6 @@ def search_vectorstore(query: str,
     embeddings = HuggingFaceEmbeddings(model_name=model_name)
     vectorstore = Chroma(persist_directory=persist_dir, embedding_function=embeddings)
     results = vectorstore.similarity_search(query, k=k)
-
 
     print("검색 결과:")
     for i, result in enumerate(results):

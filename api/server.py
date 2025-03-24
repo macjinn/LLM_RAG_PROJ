@@ -13,7 +13,8 @@ app = FastAPI(title="Financial Recommendation API")
 
 # RAG 파이프라인 및 벡터스토어 초기화
 rag_pipeline, vectorstore = build_rag_pipeline() 
-retriever = rag_pipeline.retriever
+hybrid_retriever = rag_pipeline.retriever.retriever_func.__self__ 
+
 
 if vectorstore is None:
     logger.error("Vectorstore is NOT initialized! Check ChromaDB path and ensure database exists.")
@@ -46,37 +47,44 @@ def extract_user_answer(raw_text: str) -> str:
     #     result = str(result)
 
     # 유저용 태그 추출
-    marker = "[USER_ANSWER]"
+    marker = "##[USER_ANSWER]:"
     if marker in result:
         return result.split(marker, 1)[1].strip()
 
     # 태그가 없을 경우 전체 텍스트 반환
     return result.strip()
 
+
 # 엔드포인트: 벡터스토어 검색 (/search)
 @app.post("/search")
 def search_vectorstore(request: QueryRequest):
-    """벡터스토어에서 유사한 문서를 검색합니다."""
+    """
+    벡터스토어에서 유사한 문서를 검색합니다.
+    RetrievalQA 내부 retriever → CustomRetriever → hybrid_retriever 호출 
+    """
     try:
-        # 문서와 유사도 함께 검색
-        docs_and_scores = vectorstore.similarity_search_with_score(request.query, k=request.top_k)
+        # hybrid_retriever를 통해 상세 점수(문서, combined, vector, bm25)를 받음
+        docs_and_scores = hybrid_retriever.retrieve_with_scores(request.query)
 
         if not docs_and_scores:
             return {"results": []}
 
         output = []
-        for doc, score in docs_and_scores:  
+        for doc, combined_score, vector_score, bm25_score in docs_and_scores:
             output.append({
                 "text": doc.page_content,
                 "metadata": doc.metadata,
-                "score": score
+                "combined_score": round(float(combined_score), 4),
+                "vector_score": round(float(vector_score), 4),
+                "bm25_score": round(float(bm25_score), 4)
             })
 
         return {"results": output}
 
     except Exception as e:
-        logger.error("Error during search: %s", e, exc_info=True)
-        raise HTTPException(status_code=500, detail="Search error: " + str(e))
+        logger.error("Error during hybrid search: %s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail="Hybrid search error: " + str(e))
+
 
 
 # 엔드포인트: 챗 응답 생성 (/chat)
@@ -84,18 +92,27 @@ def search_vectorstore(request: QueryRequest):
 def chat_endpoint(request: ChatRequest):
     """RAG 파이프라인을 통해 질문에 대한 답변을 생성합니다."""
     try:
-        raw_answer = rag_pipeline.invoke(request.query)  # 원본 답변 생성 (전체 정보 포함)
+        raw_answer = rag_pipeline.invoke(request.query)  # 원본 답변 생성
         print("DEBUG: raw_answer =", raw_answer)
-        user_answer = extract_user_answer(raw_answer)   # 사용자용 답변 추출 (후처리 함수 적용)
+
+        # 사용자용 답변 추출
+        user_answer = extract_user_answer(raw_answer)
+
+        # 관리자용 전체 응답
+        if isinstance(raw_answer, dict):
+            admin_answer = raw_answer.get("result", str(raw_answer))
+        else:
+            admin_answer = str(raw_answer)
 
         return {
-            "admin_answer": raw_answer.get("result", str(raw_answer)),
+            "admin_answer": admin_answer,
             "user_answer": user_answer
-        }    
+        }
 
     except Exception as e:
         logger.error("Error during chat generation: %s", e, exc_info=True)
         raise HTTPException(status_code=500, detail="Chat error: " + str(e))
+
 
 # 엔드포인트: 문서 추가 (/add)
 @app.post("/add")
@@ -105,8 +122,6 @@ def add_document(request: AddDocumentRequest):
         logger.error("Vectorstore is not initialized.")
         raise HTTPException(status_code=500, detail="Vectorstore not available.")
     try:
-        # 사용 중인 라이브러리의 API에 따라 아래 메서드를 조정하세요.
-        # 예시: vectorstore.add_texts(texts, metadatas, ids)
         vectorstore.add_texts([request.text], [request.metadata], [request.id])
         return JSONResponse(status_code=200, content={"detail": f"Document {request.id} added successfully."})
     except Exception as e:

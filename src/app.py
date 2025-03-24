@@ -68,7 +68,7 @@ def main():
     with tab_chat:
         st.subheader("금융상품 추천 챗봇")
 
-        user_query = st.text_area("질문 입력", "")
+        user_query = st.text_area("질문 입력", "", height=150)
         examples = [
             "현재 가장 높은 금리를 제공하는 예금 상품은?",
             "가입 제한이 없는 예금 상품을 추천해줘.",
@@ -87,9 +87,9 @@ def main():
                 with st.spinner("AI가 답변을 생성 중..."):
                     user_answer, admin_answer = call_chat_endpoint(user_query)
                     st.markdown("### 사용자용 답변")
-                    st.text_area("User", user_answer, height=150)
+                    st.text_area("User", user_answer, height=300)
                     with st.expander("관리자용 전체 답변"):
-                        st.text_area("Admin", admin_answer, height=250)
+                        st.text_area("Admin", admin_answer, height=600)
 
     # ============================== [Tab 2: 벡터스토어 관리] ====================
     with tab_manage:
@@ -98,22 +98,33 @@ def main():
         # 문서 검색
         st.markdown("#### 1) 문서 검색")
         search_query = st.text_input("검색어 입력", placeholder="예) 추천 예금 상품", key="search_query")
-        top_k = st.slider("검색 결과 개수", min_value=1, max_value=10, value=5, key="search_top_k")
+        top_k = st.slider("검색 결과 개수", min_value=1, max_value=10, value=3, key="search_top_k")
 
         if st.button("검색 실행", key="search_button"):
             try:
                 results = search_documents(search_query, top_k)
-                st.success(f"{len(results)}개의 결과를 찾았습니다.")
-                for idx, res in enumerate(results):
-                    st.write(f"**Rank {idx+1}**")
-                    st.text(res.get("text", "본문 없음"))
-                    st.write(f"유사도 점수(가까울수록 유사): {res.get("score", 0.0):.2f}")
-                    st.json(res.get("metadata", {}))
+                if results:
+                    st.success(f"{len(results)}개의 결과를 찾았습니다.")
+                    for idx, res in enumerate(results):
+                        st.write(f"**Rank {idx+1}**")
+                        st.text(res.get("text", "본문 없음"))
+
+                        st.markdown("**유사도 세부 점수**")
+                        st.write(f"- 결합 점수 (Hybrid): `{res.get('combined_score', 0.0):.4f}`")
+                        st.write(f"- 벡터 유사도 점수: `{res.get('vector_score', 0.0):.4f}`")
+                        st.write(f"- BM25 키워드 점수: `{res.get('bm25_score', 0.0):.4f}`")
+
+                        st.markdown("**문서 메타데이터**")
+                        st.json(res.get("metadata", {}))
+                        st.markdown("---")
+                else:
+                    st.warning("검색 결과가 없습니다. 쿼리를 다시 확인해주세요.")
+
             except Exception as e:
                 st.error(f"검색 실패: {e}")
 
-        st.markdown("---")
-        
+        st.markdown("---") 
+ 
         # 문서 추가
         st.markdown("#### 2) 문서 추가")
         doc_id = st.text_input("문서 ID", placeholder="문서의 고유 ID", key="add_id")
