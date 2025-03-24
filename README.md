@@ -23,7 +23,7 @@ LLM 모델을 통해 결과 요약 및 핵심 정보를 추론하여 사용자�
 FinShibainu는 금융 및 회계 등 금융 관련 지식 기반 텍스트 생성을 위해 특화된 언어 모델이며, KRX LLM 경진대회 리더보드에서 우수상을 수상한 shibainu24 모델을 기반으로 하고 있습니다.
 해당 모델은 금융 도메인에서 활용하기 적합한 높은 성능과 효율성을 자랑하며, 오픈소스로 공개되어 있어 손쉽게 활용 및 확장이 가능합니다.
 
-**출처:** [Hugging Face - FinShibainu](https://huggingface.co/FinShibainu)
+**출처:** [Hugging Face - FinShibainu](https://huggingface.co/aiqwe/FinShibainu)
 
 ---
 ### 모델 개요
