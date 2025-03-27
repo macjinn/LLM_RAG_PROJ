@@ -1,4 +1,7 @@
 import torch
+import os
+from src.config import CONFIG
+
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig, pipeline
 from langchain_huggingface import HuggingFaceEmbeddings 
 from langchain_chroma import Chroma
@@ -182,11 +185,11 @@ def build_rag_pipeline():
     커스텀 프롬프트가 적용된 RAG 파이프라인을 구축합니다.
     """
     # 금융 특화 LLM 로드
-    model_path = "/home/inseong/LLM_RAG_PROJ/models/FinShibainu_full"
+    model_path = CONFIG["paths"]["model_path"]
     finshibainu_llm = FinShibainuLLM(model_path).get_llm()
 
     # 벡터 데이터베이스 로드 (Chroma 사용)
-    chroma_db_path = "/home/inseong/LLM_RAG_PROJ/data/chroma_db"
+    chroma_db_path = CONFIG["paths"]["chroma_db_path"]
     embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
     vectorstore = Chroma(persist_directory=chroma_db_path, embedding_function=embeddings) 
 

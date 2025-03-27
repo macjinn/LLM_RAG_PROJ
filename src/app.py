@@ -1,11 +1,11 @@
 # /home/inseong/LLM_RAG_PROJ/src/app.py
-
+from src.config import CONFIG
 import streamlit as st
 import requests
 import json
 
 # FastAPI 서버 주소
-API_URL = "http://127.0.0.1:9000"  # 또는 외부 IP/도메인
+API_URL = f"http://{CONFIG['api']['host']}:{CONFIG['api']['port']}"
 
 # -------------------------------------------------------------
 # -------- Chat Interface 함수 (기존 Gradio app.py 기능) --------

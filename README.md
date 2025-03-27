@@ -230,7 +230,7 @@ git clone https://github.com/your-repo/project_name.git
 cd project_name
 
 # 가상 환경 생성 및 활성화
-python -m venv venv
+python3 -m venv venv
 source venv/bin/activate  # Linux/Mac
 venv\Scripts\activate     # Windows
 
@@ -245,12 +245,16 @@ python src/data_processing.py
 python src/embedding.py
 ```
 
-#### 2. 서버활성화 및 RAG 파이프라인 실행
+#### 2. config.example.yaml 수정
+- 자신의 환경에 맞게 경로를 수정
+- 파일 이름 "config.yaml"으로 변경 후 저장장
+
+#### 3. 서버활성화 및 RAG 파이프라인 실행
 ```bash
 uvicorn api.server:app --host 0.0.0.0 --port 9000
 ```
 
-#### 3. 웹 인터페이스 실행
+#### 4. 웹 인터페이스 실행
 ```bash
 streamlit run ./src/app.py
 ```

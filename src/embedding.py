@@ -2,12 +2,13 @@
 import os
 import json
 import glob
+from src.config import CONFIG
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
 
-def create_vectorstore_from_all_json(processed_dir: str = "/home/inseong/LLM_RAG_PROJ/data/processed",
+def create_vectorstore_from_all_json(processed_dir: str = CONFIG["paths"]["processed_json_path"],
                                      model_name: str = "sentence-transformers/all-MiniLM-L6-v2",
-                                     persist_dir: str = "/home/inseong/LLM_RAG_PROJ/data/chroma_db"):
+                                     persist_dir: str = CONFIG["paths"]["chroma_db_path"]):
     """
     processed_dir 폴더 내의 모든 JSON 파일에 대해 'content' 필드의 텍스트를 임베딩하여
     Chroma DB 벡터스토어에 저장합니다. (새 JSON 구조: 최상위에 "documents" 키)
@@ -106,6 +107,6 @@ def search_vectorstore(query: str,
         print("-" * 40)
 
 if __name__ == "__main__":
-    processed_dir = "/home/inseong/LLM_RAG_PROJ/data/processed"
-    persist_dir = "/home/inseong/LLM_RAG_PROJ/data/chroma_db"
+    processed_dir = CONFIG["paths"]["processed_json_path"]
+    persist_dir = CONFIG["paths"]["chroma_db_path"]
     vectorstore = create_vectorstore_from_all_json(processed_dir, persist_dir=persist_dir)

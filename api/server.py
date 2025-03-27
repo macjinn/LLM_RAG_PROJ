@@ -3,6 +3,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import logging
+from src.config import CONFIG
 from src.rag_pipeline import build_rag_pipeline
 
 # 로깅 설정
@@ -152,4 +153,5 @@ def health_check():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=9000, reload=True)
+    uvicorn.run(app, host=CONFIG["api"]["host"], port=CONFIG["api"]["port"], reload=True)
+
