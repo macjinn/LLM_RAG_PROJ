@@ -1,5 +1,4 @@
-# 작업하는 자신의 경로에 맞게 수정필요
-# 수정 후 파일이름 >>>  config.yaml  <<< 변경 후 저장
+# 해당 내용 config.yaml 파일에 복사하여 작업하는 자신의 경로에 맞게 수정
 paths:
   model_path: "/your/path/to/model"
   chroma_db_path: "/your/path/to/chroma"
