@@ -1,30 +1,21 @@
 project_name/
 ├── api/
 │   └── server.py        # FastAPI 백엔드 API 서버 (검색, 추가, 삭제 등)
-├── dashboard/
-│   └── dashboard.py     # Streamlit 대시보드 (UI 제공)
 ├── data/
 │   ├── raw/                # 원본 데이터 저장
 │   ├── processed/          # 전처리된 데이터 저장
 │   └── chroma_db/          # 임베딩 후 백터데이터베이스화화
 ├── docs/                   # 프로젝트 관련 문서
-├── models/
-│   ├── checkpoints/        # 모델 체크포인트 저장
-│   └── quantized/          # 양자화된 모델 저장
-├── notebooks/              # Jupyter 노트북 파일
-├── scripts/                # 데이터 처리 및 학습 스크립트
-├── index/                   # FAISS 인덱스 및 메타데이터 저장
-│   ├── faiss_index.index
-│   └── metadata.json
+├── notebooks/              # LLM 로드 및 테스트 Jupyter 노트북 파일
 ├── src/
 │   ├── __init__.py         # 패키지 초기화 파일
-│   ├── data_processing.py  # 데이터 전처리 모듈
+│   ├── config.py           # config 함수 로드
+│   ├── data_processing.py  # 데이터 전처리 파일
+│   ├── ...                 
 │   ├── embedding.py        # 임베딩 생성 모듈
-│   ├── model_training.py   # 모델 학습 모듈
 │   ├── rag_pipeline.py     # RAG 파이프라인 모듈
-│   └── app.py              # Gradio 인터페이스 모듈
-├── tests/                  # 테스트 코드
-├── config.yaml             # 환경 설정 및 파라미터 (수정예정)
+│   └── app.py              # Streamlit 인터페이스 모듈
+├── config.yaml             # 환경 변수
 ├── .gitignore              # Git 무시 파일 목록
 ├── requirements.txt        # 프로젝트 의존성 목록
 └── README.md               # 프로젝트 개요 및 설명
