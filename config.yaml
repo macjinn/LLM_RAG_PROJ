@@ -1,1 +1,9 @@
+# 해당 내용 config.yaml 파일에 복사하여 작업하는 자신의 경로에 맞게 수정
+paths:
+  model_path: "/your/path/to/model"
+  chroma_db_path: "/your/path/to/chroma"
+  processed_json_path: "/your/path/to/json"
 
+api:
+  host: "127.0.0.1"
+  port: 9000
