@@ -226,7 +226,7 @@ FinShibainu 모델로 검색된 금융 상품 특징을 종합 분석
 ### (1) 환경 설정
 ```bash
 # 프로젝트 클론
-git clone https://github.com/your-repo/project_name.git
+git clone https://github.com/iiiiiiiinseong/LLM_RAG_PROJ.git
 cd project_name
 
 # 가상 환경 생성 및 활성화
