@@ -1,5 +1,5 @@
 # /home/inseong/LLM_RAG_PROJ/src/app.py
-from src.config import CONFIG
+from config import CONFIG
 import streamlit as st
 import requests
 import json
