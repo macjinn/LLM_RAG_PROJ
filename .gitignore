@@ -1,4 +1,15 @@
+# Virtual environments
 venv/
+
+# Python cache
 __pycache__/
+
+# Logs
 *.log
+
+# Model 
 models/
+notebooks
+
+# Config
+config.yaml

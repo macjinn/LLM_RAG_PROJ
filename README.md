@@ -247,7 +247,7 @@ python src/embedding.py
 
 #### 2. config.example.yaml 수정
 - 자신의 환경에 맞게 경로를 수정
-- 파일 이름 "config.yaml"으로 변경 후 저장장
+- 파일 이름 "config.yaml"으로 변경 후 저장
 
 #### 3. 서버활성화 및 RAG 파이프라인 실행
 ```bash
