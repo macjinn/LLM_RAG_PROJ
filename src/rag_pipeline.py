@@ -123,6 +123,15 @@ class HybridRetriever:
             arr = np.array(scores)
             return (arr - arr.min()) / (arr.max() - arr.min() + 1e-6)
 
+        print("확인용")
+        docs = self.vectorstore.get()
+        print(docs.keys())  # 어떤 키가 있는지 확인
+
+        if docs.get("embeddings") is None:
+            print("⚠️ 'embeddings' 값이 None입니다!")
+        else:
+            print("✅ embeddings 존재:", docs["embeddings"][0][:10])
+
 
         vector_docs = [doc for doc, score in vector_results]
         # 코사인 유사도 (값이 클수록 유사한 것으로) 변환 후 정규화

@@ -12,7 +12,7 @@ class TLS12Adapter(HTTPAdapter):
         kwargs['ssl_context'] = ctx
         return super().init_poolmanager(*args, **kwargs)
 
-url = "http://apis.data.go.kr/1160100/service/GetMedicalReimbursementInsuranceInfoService/getInsuranceInfo"
+url = "http://apis.data.go.kr/1160100/service/GetSmallLoanFinanceInstituteInfoService/getOrdinaryFinanceInfo"
 params = {
     "serviceKey": "pouv9PVQTMTrZSt0KQplGtJlJnHTu9xoMA4E/5g78JpWxC2JfPiBf87rNaAxu6RkT6wCb0+MHwUcEdtKW+biNg==",
     "pageNo": 1,
@@ -54,7 +54,7 @@ else:
         print(items[1])
 
         for i, item in enumerate(items, 1):
-            name =  item.findtext('prdNm') #금융상품명
-            institute =  item.findtext('cmpyNm') #기관명
+            name =  item.findtext('finPrdNm') #금융상품명
+            institute =  item.findtext('ofrInstNm') #기관명
 
-            print(f"{i}. 상품명: {name} / 회사명: {institute}")
+            print(f"{i}. 금융상품명: {name} / 기관명: {institute}")

@@ -1,26 +1,21 @@
-# embedding.py
+
 import os
 import json
 import glob
-from src.config import CONFIG
+from config import CONFIG
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
+
+def safe_str(x):
+    if x is None:
+        return ""
+    if isinstance(x, float) and (x != x):  # NaN 확인
+        return ""
+    return str(x)
 
 def create_vectorstore_from_all_json(processed_dir: str = CONFIG["paths"]["processed_json_path"],
                                      model_name: str = "sentence-transformers/all-MiniLM-L6-v2",
                                      persist_dir: str = CONFIG["paths"]["chroma_db_path"]):
-    """
-    processed_dir 폴더 내의 모든 JSON 파일에 대해 'content' 필드의 텍스트를 임베딩하여
-    Chroma DB 벡터스토어에 저장합니다. (새 JSON 구조: 최상위에 "documents" 키)
-    
-    Args:
-        processed_dir (str): 전처리된 JSON 파일들이 있는 디렉토리.
-        model_name (str): 임베딩 모델 이름.
-        persist_dir (str): Chroma DB 저장 디렉토리.
-    
-    Returns:
-        vectorstore: 업데이트된 Chroma DB 벡터스토어 객체.
-    """
     record_file = os.path.join(persist_dir, "processed_files.txt")
     if os.path.exists(record_file):
         with open(record_file, "r", encoding="utf-8") as f:
@@ -29,7 +24,6 @@ def create_vectorstore_from_all_json(processed_dir: str = CONFIG["paths"]["proce
         processed_files = set()
     
     json_files = glob.glob(os.path.join(processed_dir, "*.json"))
-    
     embeddings = HuggingFaceEmbeddings(model_name=model_name)
     vectorstore = Chroma(persist_directory=persist_dir, embedding_function=embeddings)
     
@@ -46,27 +40,36 @@ def create_vectorstore_from_all_json(processed_dir: str = CONFIG["paths"]["proce
         try:
             with open(file_path, "r", encoding="utf-8") as f:
                 json_data = json.load(f)
-                # 새 JSON 구조: 최상위에 "documents" 키
-                documents = json_data.get("documents", [])
+
+                if isinstance(json_data, dict) and "documents" in json_data:
+                    documents = json_data["documents"]
+                elif isinstance(json_data, list):
+                    documents = json_data
+                else:
+                    print(f"지원하지 않는 JSON 구조입니다: {file_name}")
+                    continue
         except Exception as e:
             print(f"파일 {file_name} 로드 실패: {e}")
             continue
         
-        # 'content' 필드에서 텍스트를 추출하고, 메타데이터 및 id 사용
-        texts = [doc["content"] for doc in documents if "content" in doc]
-        metadatas = [doc.get("metadata", {}) for doc in documents if "content" in doc]
-        ids = [doc["id"] for doc in documents if "content" in doc]
+        texts, metadatas, ids = [], [], []
+        for doc in documents:
+            content = safe_str(doc.get("content", ""))
+            if not content.strip():
+                continue
+
+            metadata = {k: safe_str(v) for k, v in doc.get("metadata", {}).items()}
+            doc_id = safe_str(doc.get("id", ""))
+
+            texts.append(content)
+            metadatas.append(metadata)
+            ids.append(doc_id)
         
         if not texts:
-            print(f"파일 {file_name}에 'content' 필드가 없거나 데이터가 없습니다. 스킵합니다.")
+            print(f"파일 {file_name}에 유효한 'content'가 없습니다. 스킵합니다.")
             continue
         
-        # 임베딩 추가
-        vectorstore.add_texts(
-            texts=texts,
-            metadatas=metadatas,
-            ids=ids
-        )
+        vectorstore.add_texts(texts=texts, metadatas=metadatas, ids=ids)
         
         new_files.append(file_name)
         total_new_texts += len(texts)
@@ -85,18 +88,9 @@ def create_vectorstore_from_all_json(processed_dir: str = CONFIG["paths"]["proce
     return vectorstore
 
 def search_vectorstore(query: str,
-                       persist_dir: str = "/home/inseong/LLM_RAG_PROJ/data/chroma_db",
+                       persist_dir: str = CONFIG["paths"]["chroma_db_path"],
                        model_name: str = "sentence-transformers/all-MiniLM-L6-v2",
                        k: int = 3):
-    """
-    저장된 Chroma DB 벡터스토어에서 쿼리와 유사한 문서를 검색합니다.
-    
-    Args:
-        query (str): 검색할 쿼리 텍스트.
-        persist_dir (str): Chroma DB 저장 디렉토리.
-        model_name (str): 임베딩 모델 이름.
-        k (int): 검색 결과 개수.
-    """
     embeddings = HuggingFaceEmbeddings(model_name=model_name)
     vectorstore = Chroma(persist_directory=persist_dir, embedding_function=embeddings)
     results = vectorstore.similarity_search(query, k=k)
