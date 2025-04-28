@@ -5,8 +5,8 @@ import urllib.parse
 
 # ✅ 설정값
 API_KEY = 'pouv9PVQTMTrZSt0KQplGtJlJnHTu9xoMA4E%2F5g78JpWxC2JfPiBf87rNaAxu6RkT6wCb0%2BMHwUcEdtKW%2BbiNg%3D%3D'  # 디코딩 전 키
-BASE_URL = 'http://apis.data.go.kr/B190030/GetCardProductInfoService/getCardProductList'
-NUM_OF_ROWS = 1000 # 페이지당 항목 수
+BASE_URL = 'http://apis.data.go.kr/B190030/GetCardProductInfoService/getCardProductList'p
+NUM_OF_ROWS = 10000 # 페이지당 항목 수
 
 # ✅ 서비스 키 인코딩
 decoded_key = urllib.parse.unquote(API_KEY)

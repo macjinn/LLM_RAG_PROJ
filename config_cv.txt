@@ -1,0 +1,20 @@
+*********PC용**********
+paths:
+  model_path: "C:/Users/sj/Documents/CAPD/LLM_RAG_PROJ/models/FinShibainu_4bit"
+  chroma_db_path: "C:/Users/sj/Documents/CAPD/LLM_RAG_PROJ/data/chroma_db"
+  processed_json_path: "C:/Users/sj/Documents/CAPD/LLM_RAG_PROJ/data/processed"
+
+api:
+  host: "127.0.0.1"
+  port: 9000
+
+
+*******노트북용********
+paths:
+  model_path: "D:/LLM_RAG_PROJ/models/FinShibainu_4bit"
+  chroma_db_path: "D:/LLM_RAG_PROJ/data/chroma_db"
+  processed_json_path: "D:/LLM_RAG_PROJ/data/processed"
+
+api:
+  host: "127.0.0.1"
+  port: 9000

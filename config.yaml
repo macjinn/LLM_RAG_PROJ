@@ -1,8 +1,7 @@
-# 해당 내용 config.yaml 파일에 복사하여 작업하는 자신의 경로에 맞게 수정
 paths:
-  model_path: "C:/Users/sj/Documents/CAPD/LLM_RAG_PROJ/models/FinShibainu_4bit"
-  chroma_db_path: "C:/Users/sj/Documents/CAPD/LLM_RAG_PROJ/data/chroma_db"
-  processed_json_path: "C:/Users/sj/Documents/CAPD/LLM_RAG_PROJ/data/processed"
+  model_path: "D:/LLM_RAG_PROJ/models/FinShibainu_4bit"
+  chroma_db_path: "D:/LLM_RAG_PROJ/data/chroma_db"
+  processed_json_path: "D:/LLM_RAG_PROJ/data/processed"
 
 api:
   host: "127.0.0.1"
